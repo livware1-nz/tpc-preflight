@@ -4,7 +4,7 @@ services:
     runtime: node
     region: singapore  # Closest to NZ
     plan: starter      # USD $7/month
-    buildCommand: npm install
+    buildCommand: apt-get install -y ghostscript poppler-utils && npm install
     startCommand: node server.js
     envVars:
       - key: ANTHROPIC_API_KEY
