@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: tpc-preflight
+    runtime: node
+    region: singapore  # Closest to NZ
+    plan: starter      # USD $7/month
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: preflight@theprintcompany.co.nz
+      - key: APP_USERNAME
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+    # Install system dependencies (Ghostscript + poppler for pdfimages/pdfinfo/pdffonts)
+    # Add this as a build command prefix:
+    # apt-get update && apt-get install -y ghostscript poppler-utils && npm install
