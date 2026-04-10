@@ -8,6 +8,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const sgMail = require('@sendgrid/mail');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
+const execAsyncTimeout = (cmd) => execAsyncTimeout(cmd, { timeout: 25000 });
 
 const app = express();
 const upload = multer({ 
@@ -121,7 +122,7 @@ async function analyzePDF(filePath, filename) {
 
   // Get page count and basic info via pdfinfo
   try {
-    const { stdout: pdfinfo } = await execAsync(`pdfinfo "${filePath}" 2>/dev/null || true`);
+    const { stdout: pdfinfo } = await execAsyncTimeout(`pdfinfo "${filePath}" 2>/dev/null || true`);
     const pageMatch = pdfinfo.match(/Pages:\s+(\d+)/);
     if (pageMatch) results.pageCount = parseInt(pageMatch[1]);
     
@@ -138,7 +139,7 @@ async function analyzePDF(filePath, filename) {
 
   // Extract images and check resolution via pdfimages
   try {
-    const { stdout: imageList } = await execAsync(`pdfimages -list "${filePath}" 2>/dev/null || true`);
+    const { stdout: imageList } = await execAsyncTimeout(`pdfimages -list "${filePath}" 2>/dev/null || true`);
     const lines = imageList.split('\n').filter(l => l.match(/^\s+\d+/));
     
     results.images = [];
@@ -182,7 +183,7 @@ async function analyzePDF(filePath, filename) {
 
   // Check fonts via pdffonts
   try {
-    const { stdout: fontList } = await execAsync(`pdffonts "${filePath}" 2>/dev/null || true`);
+    const { stdout: fontList } = await execAsyncTimeout(`pdffonts "${filePath}" 2>/dev/null || true`);
     const fontLines = fontList.split('\n').slice(2).filter(l => l.trim());
     
     for (const line of fontLines) {
@@ -214,7 +215,7 @@ async function analyzePDF(filePath, filename) {
       1 pdfgetpage /TrimBox knownoget { == } { (no trimbox) = } ifelse
     " 2>/dev/null || true`;
     
-    const { stdout: gsOut } = await execAsync(gsCmd);
+    const { stdout: gsOut } = await execAsyncTimeout(gsCmd);
     
     results.hasBleedBox = gsOut.includes('[') && !gsOut.includes('no bleedbox');
     results.hasTrimBox = !gsOut.includes('no trimbox');
@@ -236,7 +237,7 @@ async function analyzePDF(filePath, filename) {
 
   // Check for transparency using Ghostscript
   try {
-    const { stdout: transCheck } = await execAsync(
+    const { stdout: transCheck } = await execAsyncTimeout(
       `gs -dNOPAUSE -dBATCH -sDEVICE=bbox "${filePath}" 2>&1 | grep -i "transparency\|blend\|alpha" | head -5 || true`
     );
     results.hasTransparency = transCheck.length > 10;
