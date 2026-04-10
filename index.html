@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TPC Preflight</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0f0f0f;
+      --paper: #f4f1eb;
+      --white: #ffffff;
+      --red: #c0392b;
+      --red-light: #fdf0ee;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --green: #16a34a;
+      --green-light: #f0fdf4;
+      --mid: #6b6b6b;
+      --light: #9b9b9b;
+      --border: #e0dbd0;
+      --border-dark: #c8c3b8;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 90%, rgba(192,57,43,0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(15,15,15,0.03) 0%, transparent 40%);
+    }
+
+    /* Header */
+    header {
+      background: var(--ink);
+      padding: 0 40px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: white;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-mark svg { display: block; }
+
+    .brand-text { line-height: 1; }
+    .brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 16px;
+      color: white;
+    }
+    .brand-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .header-actions { display: flex; align-items: center; gap: 20px; }
+    
+    .header-time {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .logout-btn {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .logout-btn:hover { color: white; }
+
+    /* Main layout */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* Panel base */
+    .panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    .panel-head {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-head h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--ink);
+    }
+
+    .panel-head p {
+      font-size: 13px;
+      color: var(--mid);
+      margin-top: 4px;
+    }
+
+    .panel-body { padding: 24px; }
+
+    /* Upload form */
+    .drop-zone {
+      border: 2px dashed var(--border-dark);
+      border-radius: 8px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--paper);
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--ink);
+      background: #f0ede6;
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .drop-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--ink);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .drop-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .drop-sub {
+      font-size: 12px;
+      color: var(--light);
+    }
+
+    .selected-file {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-top: 12px;
+    }
+
+    .selected-file.show { display: flex; }
+
+    .file-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-size { font-size: 12px; color: var(--light); }
+
+    .remove-file {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--light);
+      padding: 2px;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .remove-file:hover { color: var(--red); }
+
+    /* Form fields */
+    .field { margin-top: 16px; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--mid);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    input[type="email"], input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--paper);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: var(--ink); background: white; }
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px;
+      background: var(--ink);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .submit-btn:hover:not(:disabled) { background: #2a2a2a; }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Results panel */
+    .results-panel {
+      min-height: 400px;
+    }
+
+    .results-empty {
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--light);
+    }
+
+    .results-empty .empty-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--paper);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .results-empty h3 {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--mid);
+      margin-bottom: 8px;
+    }
+
+    .results-empty p { font-size: 13px; }
+
+    /* Status badge */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .status-pass { background: var(--green-light); color: var(--green); }
+    .status-warn { background: var(--amber-light); color: var(--amber); }
+    .status-fail { background: var(--red-light); color: var(--red); }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Quick stats */
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat {
+      background: white;
+      padding: 14px 16px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--ink);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--light);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-top: 2px;
+    }
+
+    .stat.warn .stat-val { color: var(--amber); }
+    .stat.fail .stat-val { color: var(--red); }
+    .stat.pass .stat-val { color: var(--green); }
+
+    /* Report body */
+    .report-body {
+      padding: 24px;
+    }
+
+    .report-filename {
+      font-size: 12px;
+      color: var(--light);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 16px;
+    }
+
+    .report-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #333;
+      white-space: pre-wrap;
+    }
+
+    .report-text strong, .report-text b {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* Loading state */
+    .loading-state {
+      padding: 60px 24px;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--ink);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-state h3 {
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--mid);
+      margin-bottom: 6px;
+    }
+
+    .loading-state p { font-size: 13px; color: var(--light); }
+
+    .loading-steps {
+      margin-top: 20px;
+      text-align: left;
+      max-width: 260px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .loading-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--light);
+      padding: 4px 0;
+    }
+
+    .loading-step.active { color: var(--ink); font-weight: 500; }
+    .loading-step.done { color: var(--green); }
+
+    .step-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Error state */
+    .error-state {
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .error-state .err-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--red-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 22px;
+    }
+
+    .error-state h3 { color: var(--red); margin-bottom: 8px; }
+    .error-state p { font-size: 13px; color: var(--mid); }
+
+    /* Email notice */
+    .email-notice {
+      margin: 16px 24px;
+      background: var(--green-light);
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Result header */
+    .result-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: gap;
+      gap: 12px;
+    }
+
+    .result-header h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--ink);
+    }
+
+    .new-check-btn {
+      background: none;
+      border: 1.5px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--mid);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .new-check-btn:hover { border-color: var(--ink); color: var(--ink); }
+
+    @media (max-width: 780px) {
+      .main { grid-template-columns: 1fr; }
+      header { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-brand">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="1" y="1" width="7" height="7" fill="#0f0f0f"/>
+          <rect x="10" y="1" width="7" height="7" fill="#0f0f0f" opacity="0.4"/>
+          <rect x="1" y="10" width="7" height="7" fill="#0f0f0f" opacity="0.4"/>
+          <rect x="10" y="10" width="7" height="7" fill="#0f0f0f"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">The Print Company</div>
+        <div class="brand-sub">Preflight System</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="header-time" id="clock"></span>
+      <a href="/logout" class="logout-btn">Sign out</a>
+    </div>
+  </header>
+
+  <div class="main">
+
+    <!-- Upload Panel -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Check a File</h2>
+        <p>Upload a client PDF to run a preflight check</p>
+      </div>
+      <div class="panel-body">
+
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept=".pdf,application/pdf">
+          <div class="drop-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="12" y2="12"/>
+              <line x1="15" y1="15" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <div class="drop-title">Drop PDF here or click to browse</div>
+          <div class="drop-sub">PDF files only · Max 50MB</div>
+        </div>
+
+        <div class="selected-file" id="selectedFile">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span class="file-name" id="fileName">—</span>
+          <span class="file-size" id="fileSize"></span>
+          <button class="remove-file" id="removeFile" type="button">×</button>
+        </div>
+
+        <div class="field">
+          <label>Your Email Address</label>
+          <input type="email" id="emailInput" placeholder="you@theprintcompany.co.nz">
+        </div>
+
+        <button class="submit-btn" id="submitBtn" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Run Preflight Check
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="panel results-panel" id="resultsPanel">
+
+      <!-- Empty state -->
+      <div class="results-empty" id="emptyState">
+        <div class="empty-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" stroke-linecap="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <h3>No file checked yet</h3>
+        <p>Upload a PDF to see the preflight report here</p>
+      </div>
+
+      <!-- Loading state -->
+      <div class="loading-state" id="loadingState" style="display:none">
+        <div class="spinner"></div>
+        <h3>Analysing file…</h3>
+        <p>This usually takes 15–30 seconds</p>
+        <div class="loading-steps">
+          <div class="loading-step active" id="step1"><div class="step-dot"></div>Extracting PDF data</div>
+          <div class="loading-step" id="step2"><div class="step-dot"></div>Checking images & resolution</div>
+          <div class="loading-step" id="step3"><div class="step-dot"></div>Verifying fonts & colour</div>
+          <div class="loading-step" id="step4"><div class="step-dot"></div>Generating report</div>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div class="error-state" id="errorState" style="display:none">
+        <div class="err-icon">⚠</div>
+        <h3>Analysis Failed</h3>
+        <p id="errorMessage">Something went wrong. Please try again.</p>
+      </div>
+
+      <!-- Results -->
+      <div id="resultsContent" style="display:none">
+        <div class="result-header">
+          <div>
+            <h2>Preflight Report</h2>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div id="statusBadge" class="status-badge"></div>
+            <button class="new-check-btn" id="newCheckBtn">New check</button>
+          </div>
+        </div>
+
+        <div class="quick-stats" id="quickStats"></div>
+
+        <div id="emailNotice" class="email-notice" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Report sent to your email
+        </div>
+
+        <div class="report-body">
+          <div class="report-filename" id="reportFilename"></div>
+          <div class="report-text" id="reportText"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // File handling
+    let selectedFile = null;
+
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const submitBtn = document.getElementById('submitBtn');
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files[0]) setFile(e.target.files[0]);
+    });
+
+    document.getElementById('removeFile').addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      document.getElementById('selectedFile').classList.remove('show');
+      submitBtn.disabled = true;
+    });
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type === 'application/pdf') setFile(file);
+    });
+
+    function setFile(file) {
+      selectedFile = file;
+      document.getElementById('fileName').textContent = file.name;
+      document.getElementById('fileSize').textContent = formatSize(file.size);
+      document.getElementById('selectedFile').classList.add('show');
+      submitBtn.disabled = false;
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    // Submit
+    submitBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      
+      showLoading();
+
+      const formData = new FormData();
+      formData.append('pdf', selectedFile);
+      formData.append('email', document.getElementById('emailInput').value);
+
+      // Animate steps
+      const steps = ['step1', 'step2', 'step3', 'step4'];
+      let stepIndex = 0;
+      const stepTimer = setInterval(() => {
+        if (stepIndex > 0) document.getElementById(steps[stepIndex - 1]).classList.replace('active', 'done');
+        if (stepIndex < steps.length) {
+          document.getElementById(steps[stepIndex]).classList.add('active');
+          stepIndex++;
+        }
+      }, 4000);
+
+      try {
+        const res = await fetch('/preflight', { method: 'POST', body: formData });
+        clearInterval(stepTimer);
+
+        if (!res.ok) {
+          const err = await res.json();
+          showError(err.error || 'Analysis failed');
+          return;
+        }
+
+        const data = await res.json();
+        showResults(data);
+
+      } catch (err) {
+        clearInterval(stepTimer);
+        showError('Network error — please try again');
+      }
+    });
+
+    function showLoading() {
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('loadingState').style.display = 'block';
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('resultsContent').style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Analysing…';
+    }
+
+    function showError(msg) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      document.getElementById('errorMessage').textContent = msg;
+      resetBtn();
+    }
+
+    function showResults(data) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('resultsContent').style.display = 'block';
+
+      const report = data.report || '';
+      const analysis = data.analysis || {};
+
+      // Detect status from report text
+      let status = 'PASS';
+      const upper = report.toUpperCase();
+      if (upper.includes('STATUS: FAIL') || upper.includes('**FAIL**') || upper.includes('STATUS: FAIL')) status = 'FAIL';
+      else if (upper.includes('WARNINGS') || upper.includes('STATUS: PASS WITH') || upper.includes('**PASS WITH WARNINGS**')) status = 'WARN';
+
+      // Status badge
+      const badge = document.getElementById('statusBadge');
+      if (status === 'PASS') { badge.className = 'status-badge status-pass'; badge.innerHTML = '<div class="status-dot"></div>Pass'; }
+      else if (status === 'WARN') { badge.className = 'status-badge status-warn'; badge.innerHTML = '<div class="status-dot"></div>Pass with warnings'; }
+      else { badge.className = 'status-badge status-fail'; badge.innerHTML = '<div class="status-dot"></div>Fail'; }
+
+      // Quick stats
+      const stats = document.getElementById('quickStats');
+      const pages = analysis.pageCount || '—';
+      const images = analysis.imageCount ?? '—';
+      const fonts = analysis.fontCount ?? '—';
+      const errors = (analysis.errors || []).length;
+
+      const errClass = errors > 0 ? 'fail' : 'pass';
+
+      stats.innerHTML = `
+        <div class="stat"><span class="stat-val">${pages}</span><span class="stat-label">Pages</span></div>
+        <div class="stat"><span class="stat-val">${images}</span><span class="stat-label">Images</span></div>
+        <div class="stat"><span class="stat-val">${fonts}</span><span class="stat-label">Fonts</span></div>
+        <div class="stat ${errClass}"><span class="stat-val">${errors}</span><span class="stat-label">Errors</span></div>
+      `;
+
+      // Email notice
+      if (data.emailSent) {
+        document.getElementById('emailNotice').style.display = 'flex';
+      }
+
+      // Report
+      document.getElementById('reportFilename').textContent = analysis.filename || '';
+      document.getElementById('reportText').textContent = report;
+
+      resetBtn();
+    }
+
+    function resetBtn() {
+      submitBtn.disabled = !selectedFile;
+      submitBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Run Preflight Check`;
+    }
+
+    document.getElementById('newCheckBtn').addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      document.getElementById('selectedFile').classList.remove('show');
+      document.getElementById('resultsContent').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'block';
+      submitBtn.disabled = true;
+    });
+  </script>
+
+</body>
+</html>
