@@ -8,7 +8,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const sgMail = require('@sendgrid/mail');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
-const execAsyncTimeout = (cmd) => execAsyncTimeout(cmd, { timeout: 25000 });
+const execAsyncTimeout = (cmd) => execAsync(cmd, { timeout: 25000 });
 
 const app = express();
 const upload = multer({ 
