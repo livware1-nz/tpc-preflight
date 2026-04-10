@@ -299,7 +299,7 @@ Write a preflight report with:
 Keep language plain and professional. No jargon the sales team won't understand. Be direct and concise.`;
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: 1000,
     messages: [{ role: 'user', content: prompt }]
   });
