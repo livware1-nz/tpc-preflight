@@ -99,7 +99,9 @@ app.post('/preflight', requireAuth, upload.single('pdf'), async (req, res) => {
 
   } catch (err) {
     fs.unlink(filePath, () => {});
-    console.error('Preflight error:', err);
+    console.error('Preflight error full:', JSON.stringify(err, null, 2));
+    console.error('Preflight error message:', err.message);
+    console.error('Preflight error stack:', err.stack);
     res.status(500).json({ error: err.message || 'Analysis failed' });
   }
 });
